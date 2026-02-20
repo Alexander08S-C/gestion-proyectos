@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestión de Proyectos</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-content">
+      <div>
+        <h1>Gestión de Proyectos</h1>
+        <p>Panel interno del equipo</p>
+      </div>
+      <div id="header-botones">
+        <button id="btn-exportar" onclick="exportarPDF()">🖨️ Exportar PDF</button>
+        <button id="btn-tema" onclick="toggleTema()">🌙 Modo oscuro</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main>
+
+    <!-- RESUMEN / ESTADÍSTICAS -->
+    <section id="resumen">
+      <div class="card">
+        <h3>Total Proyectos</h3>
+        <p id="total-proyectos">0</p>
+      </div>
+      <div class="card">
+        <h3>En Curso</h3>
+        <p id="en-curso">0</p>
+      </div>
+      <div class="card">
+        <h3>En Riesgo</h3>
+        <p id="en-riesgo">0</p>
+      </div>
+      <div class="card">
+        <h3>Completados</h3>
+        <p id="completados">0</p>
+      </div>
+    </section>
+
+    <!-- GRÁFICO DE PROGRESO -->
+    <section id="seccion-grafico">
+      <div id="grafico-card">
+        <h2>Resumen general</h2>
+        <div id="grafico-contenido">
+          <div id="grafico-dona">
+            <canvas id="miGrafico"></canvas>
+          </div>
+          <div id="grafico-leyenda">
+            <div class="leyenda-item">
+              <span class="leyenda-dot" style="background:#2563eb"></span>
+              <span>En curso</span>
+              <strong id="leyenda-en-curso">0</strong>
+            </div>
+            <div class="leyenda-item">
+              <span class="leyenda-dot" style="background:#f59e0b"></span>
+              <span>En riesgo</span>
+              <strong id="leyenda-en-riesgo">0</strong>
+            </div>
+            <div class="leyenda-item">
+              <span class="leyenda-dot" style="background:#10b981"></span>
+              <span>Completados</span>
+              <strong id="leyenda-completados">0</strong>
+            </div>
+            <div class="leyenda-separador"></div>
+            <div class="leyenda-item">
+              <span>Progreso promedio</span>
+              <strong id="leyenda-promedio">0%</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ESTADÍSTICAS POR RESPONSABLE -->
+    <section id="seccion-responsables">
+      <div id="responsables-card">
+        <h2>Carga por responsable</h2>
+        <div id="lista-responsables">
+          <!-- Generado desde app.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- BOTÓN NUEVO PROYECTO -->
+    <section id="proyectos">
+      <div class="proyectos-header">
+        <div class="proyectos-header-izq">
+          <h2>Proyectos</h2>
+          <div id="toggle-vista">
+            <button class="btn-vista activo" id="btn-lista" onclick="cambiarVista('lista')">☰ Lista</button>
+            <button class="btn-vista" id="btn-kanban" onclick="cambiarVista('kanban')">⊞ Kanban</button>
+            <button class="btn-vista" id="btn-calendario" onclick="cambiarVista('calendario')">📅 Calendario</button>
+          </div>
+        </div>
+        <button id="btn-nuevo" onclick="abrirFormulario()">+ Nuevo proyecto</button>
+      </div>
+
+      <!-- FORMULARIO (oculto por defecto) -->
+      <div id="formulario-container" class="oculto">
+        <div id="formulario">
+          <h3>Nuevo Proyecto</h3>
+
+          <div class="campo">
+            <label for="nombre">Nombre del proyecto</label>
+            <input type="text" id="nombre" placeholder="Ej: Transformación Digital — Cliente X" />
+          </div>
+
+          <div class="campo">
+            <label for="cliente">Cliente</label>
+            <input type="text" id="cliente" placeholder="Ej: BancoNorte S.A." />
+          </div>
+
+          <div class="campo">
+            <label for="responsable">Responsable</label>
+            <input type="text" id="responsable" placeholder="Ej: Valentina Cruz" />
+          </div>
+
+          <div class="fila">
+            <div class="campo">
+              <label for="estado">Estado</label>
+              <select id="estado">
+                <option value="en-curso">En curso</option>
+                <option value="en-riesgo">En riesgo</option>
+                <option value="completado">Completado</option>
+              </select>
+            </div>
+
+            <div class="campo">
+              <label for="progreso">Progreso (%)</label>
+              <input type="number" id="progreso" min="0" max="100" placeholder="0 - 100" />
+            </div>
+
+            <div class="campo">
+              <label for="fechaEntrega">Fecha de entrega</label>
+              <input type="date" id="fechaEntrega" />
+            </div>
+          </div>
+
+          <div class="formulario-botones">
+            <button id="btn-cancelar" onclick="cerrarFormulario()">Cancelar</button>
+            <button id="btn-guardar" onclick="guardarNuevoProyecto()">Guardar proyecto</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- BUSCADOR -->
+      <div id="buscador-container">
+        <input type="text" id="buscador" placeholder="Buscar proyecto por nombre o cliente..." oninput="buscar(this.value)" />
+      </div>
+
+      <!-- ORDENAR -->
+      <div id="ordenar-container">
+        <select id="ordenar" onchange="ordenar(this.value)" aria-label="Ordenar proyectos por">
+          <option value="">Ordenar por...</option>
+          <option value="nombre">Nombre (A-Z)</option>
+          <option value="fecha-asc">Fecha entrega (más próxima)</option>
+          <option value="fecha-desc">Fecha entrega (más lejana)</option>
+          <option value="progreso-asc">Progreso (menor)</option>
+          <option value="progreso-desc">Progreso (mayor)</option>
+        </select>
+      </div>
+
+      <!-- FILTROS -->
+      <div id="filtros">
+        <button class="filtro activo" onclick="filtrar('todos', this)">Todos</button>
+        <button class="filtro" onclick="filtrar('en-curso', this)">En curso</button>
+        <button class="filtro" onclick="filtrar('en-riesgo', this)">En riesgo</button>
+        <button class="filtro" onclick="filtrar('completado', this)">Completado</button>
+      </div>
+
+      <div id="lista-proyectos">
+        <!-- Los proyectos se van a generar desde app.js -->
+      </div>
+
+      <!-- VISTA CALENDARIO -->
+      <div id="calendario-board" class="oculto">
+        <div id="calendario-nav">
+          <button id="btn-mes-ant" onclick="cambiarMes(-1)">&#8592;</button>
+          <h3 id="calendario-titulo"></h3>
+          <button id="btn-mes-sig" onclick="cambiarMes(1)">&#8594;</button>
+        </div>
+        <div id="calendario-dias-semana">
+          <span>Dom</span><span>Lun</span><span>Mar</span>
+          <span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span>
+        </div>
+        <div id="calendario-grid"></div>
+        <div id="calendario-leyenda">
+          <span class="cal-leyenda en-curso">● En curso</span>
+          <span class="cal-leyenda en-riesgo">● En riesgo</span>
+          <span class="cal-leyenda completado">● Completado</span>
+        </div>
+      </div>
+
+      <!-- VISTA KANBAN -->
+      <div id="kanban-board" class="oculto">
+        <div class="kanban-col" id="col-en-curso">
+          <div class="kanban-col-header en-curso">
+            <span>En curso</span>
+            <span class="kanban-count" id="count-en-curso">0</span>
+          </div>
+          <div class="kanban-items" id="items-en-curso"></div>
+        </div>
+        <div class="kanban-col" id="col-en-riesgo">
+          <div class="kanban-col-header en-riesgo">
+            <span>En riesgo</span>
+            <span class="kanban-count" id="count-en-riesgo">0</span>
+          </div>
+          <div class="kanban-items" id="items-en-riesgo"></div>
+        </div>
+        <div class="kanban-col" id="col-completado">
+          <div class="kanban-col-header completado">
+            <span>Completado</span>
+            <span class="kanban-count" id="count-completado">0</span>
+          </div>
+          <div class="kanban-items" id="items-completado"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
